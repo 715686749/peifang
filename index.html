@@ -4,103 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>食谱计算工具</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-        }
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        .input-group label {
-            display: block;
-            margin-bottom: 5px;
-        }
-        .input-group input {
-            width: 100%;
-            padding: 8px;
-            box-sizing: border-box;
-        }
-        .result {
-            margin-top: 20px;
-            font-weight: bold;
-        }
-        button {
-            padding: 10px 20px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div class="container">
         <h1>食谱计算工具</h1>
-        <div class="input-group">
-            <label for="totalWeight">需要的总克数 (g):</label>
-            <input type="number" id="totalWeight" placeholder="输入总克数">
-        </div>
-        <div id="ingredients">
+        <div id="recipe-inputs">
             <div class="input-group">
-                <label for="ingredient1">配方1 (g):</label>
-                <input type="number" class="ingredient" placeholder="输入配方1的克数">
+                <label for="total-grams">总克数:</label>
+                <input type="number" id="total-grams" placeholder="输入总克数">
             </div>
-            <div class="input-group">
-                <label for="ingredient2">配方2 (g):</label>
-                <input type="number" class="ingredient" placeholder="输入配方2的克数">
+            <div class="ingredient-group">
+                <label>配方:</label>
+                <textarea id="ingredients" placeholder="输入配方，每行一个食材和克数，例如：面粉 100g"></textarea>
             </div>
+            <button onclick="calculateRecipe()">计算</button>
         </div>
-        <button onclick="calculate()">计算</button>
-        <div class="result" id="result"></div>
-        <button onclick="addIngredient()">添加更多配方</button>
+        <div id="result" class="hidden">
+            <h2>调整后的配方</h2>
+            <ul id="adjusted-recipe"></ul>
+        </div>
     </div>
-
-    <script>
-        function calculate() {
-            const totalWeight = parseFloat(document.getElementById('totalWeight').value);
-            const ingredients = document.querySelectorAll('.ingredient');
-            let totalOriginalWeight = 0;
-
-            ingredients.forEach(input => {
-                totalOriginalWeight += parseFloat(input.value) || 0;
-            });
-
-            if (totalOriginalWeight === 0) {
-                document.getElementById('result').innerText = '请输入有效的配方克数。';
-                return;
-            }
-
-            const ratio = totalWeight / totalOriginalWeight;
-            let resultText = '调整后的配方克数:\n';
-
-            ingredients.forEach((input, index) => {
-                const originalWeight = parseFloat(input.value) || 0;
-                const adjustedWeight = originalWeight * ratio;
-                resultText += `配方${index + 1}: ${adjustedWeight.toFixed(2)}g\n`;
-            });
-
-            document.getElementById('result').innerText = resultText;
-        }
-
-        function addIngredient() {
-            const ingredientsDiv = document.getElementById('ingredients');
-            const newIngredient = document.createElement('div');
-            newIngredient.className = 'input-group';
-            const count = ingredientsDiv.children.length + 1;
-            newIngredient.innerHTML = `
-                <label for="ingredient${count}">配方${count} (g):</label>
-                <input type="number" class="ingredient" placeholder="输入配方${count}的克数">
-            `;
-            ingredientsDiv.appendChild(newIngredient);
-        }
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
