@@ -1,43 +1,42 @@
 function calculateRecipe() {
     const totalGrams = parseFloat(document.getElementById('total-grams').value);
     const ingredientsText = document.getElementById('ingredients').value;
-    const ingredients = ingredientsText.split('\n').filter(line => line.trim() !== '');
 
-    let totalOriginalGrams = 0;
+    // 使用正则表达式提取食材和克数
+    const regex = /([\u4e00-\u9fa5a-zA-Z]+)\s*([\d.-]+)\s*克/g;
+    let match;
     const ingredientList = [];
+    let totalOriginalGrams = 0;
 
-    ingredients.forEach(line => {
-        // 使用正则表达式提取食材名称和数字
-        const match = line.match(/([\u4e00-\u9fa5a-zA-Z]+)\s*([\d.]+)\s*(g|kg|ml)?/i);
-        if (match) {
-            const name = match[1].trim();
-            let grams = parseFloat(match[2]);
-            const unit = (match[3] || '').toLowerCase();
+    while ((match = regex.exec(ingredientsText)) !== null) {
+        const name = match[1].trim();
+        let grams = match[2];
 
-            // 转换单位
-            if (unit === 'kg') {
-                grams *= 1000; // 千克转克
-            } else if (unit === 'ml') {
-                // 假设1毫升 ≈ 1克（适用于水或类似密度的液体）
-                grams *= 1;
-            }
-
-            totalOriginalGrams += grams;
-            ingredientList.push({ name, grams });
+        // 处理范围值（如1-30克）
+        if (grams.includes('-')) {
+            const [min, max] = grams.split('-').map(parseFloat);
+            grams = (min + max) / 2; // 取中间值
+        } else {
+            grams = parseFloat(grams);
         }
-    });
+
+        totalOriginalGrams += grams;
+        ingredientList.push({ name, grams });
+    }
 
     if (totalOriginalGrams === 0) {
-        alert('请输入有效的配方');
+        alert('未找到有效的配方信息，请检查输入格式');
         return;
     }
 
+    // 计算调整比例
     const ratio = totalGrams / totalOriginalGrams;
     const adjustedRecipe = ingredientList.map(ingredient => ({
         name: ingredient.name,
         grams: ingredient.grams * ratio
     }));
 
+    // 显示结果
     const resultList = document.getElementById('adjusted-recipe');
     resultList.innerHTML = '';
     adjustedRecipe.forEach(ingredient => {
