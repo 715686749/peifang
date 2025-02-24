@@ -9,10 +9,11 @@ function calculateRecipe() {
     let totalOriginalGrams = 0;
 
     while ((match = regex.exec(ingredientsText)) !== null) {
+        console.log('匹配到:', match[1], match[2]); // 打印食材名称和克数
         const name = match[1].trim();
         let grams = match[2];
 
-        // 处理范围值（如1-30克）
+        // 处理范围值
         if (grams.includes('-')) {
             const [min, max] = grams.split('-').map(parseFloat);
             grams = (min + max) / 2; // 取中间值
