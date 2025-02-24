@@ -2,26 +2,20 @@ function calculateRecipe() {
     const totalGrams = parseFloat(document.getElementById('total-grams').value);
     const ingredientsText = document.getElementById('ingredients').value;
 
-    // 定义单位转换表（用于计算总克数）
-    const unitConversion = {
-        '杯': 240,
-        '根': 50,
-        '片': 5,
-        '顆': 5,
-        'g': 1,
-        '克': 1
-    };
-
     // 使用正则表达式提取食材、数量和单位
     const regex = /([\u4e00-\u9fa5a-zA-Z]+)\s*(?:\([^)]*\))?\s*([\d./-]+)\s*([\u4e00-\u9fa5a-zA-Z]*)/g;
     let match;
     const ingredientList = [];
-    let totalOriginalGrams = 0;
+    let totalOriginalQuantity = 0;
+
+    // 打印调试信息
+    console.log('输入文本:', ingredientsText);
 
     while ((match = regex.exec(ingredientsText)) !== null) {
+        console.log('匹配到:', match[1], match[2], match[3]); // 打印食材名称、数量和单位
         const name = match[1].trim();
         let quantity = match[2];
-        const unit = match[3] || '克'; // 默认单位为克
+        const unit = match[3] || ''; // 单位可以为空
 
         // 处理分数（如1/3）
         if (quantity.includes('/')) {
@@ -37,22 +31,23 @@ function calculateRecipe() {
             quantity = (min + max) / 2; // 取中间值
         }
 
-        // 转换单位并计算总克数
-        const grams = quantity * (unitConversion[unit] || 1);
-        totalOriginalGrams += grams;
-        ingredientList.push({ name, quantity, unit }); // 保留原始单位和数量
+        // 累加总数量
+        totalOriginalQuantity += quantity;
+
+        // 保留食材信息
+        ingredientList.push({ name, quantity, unit });
     }
 
-    if (totalOriginalGrams === 0) {
+    if (totalOriginalQuantity === 0) {
         alert('未找到有效的配方信息，请检查输入格式');
         return;
     }
 
     // 计算调整比例
-    const ratio = totalGrams / totalOriginalGrams;
+    const ratio = totalGrams / totalOriginalQuantity;
     const adjustedRecipe = ingredientList.map(ingredient => ({
         name: ingredient.name,
-        quantity: ingredient.quantity * ratio, // 调整数量
+        quantity: ingredient.quantity * ratio, // 按比例调整数量
         unit: ingredient.unit // 保持单位不变
     }));
 
