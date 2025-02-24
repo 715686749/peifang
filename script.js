@@ -2,27 +2,45 @@ function calculateRecipe() {
     const totalGrams = parseFloat(document.getElementById('total-grams').value);
     const ingredientsText = document.getElementById('ingredients').value;
 
-    // 使用正则表达式提取食材和克数
-    const regex = /([\u4e00-\u9fa5a-zA-Z]+)\s*([\d.-]+)\s*克/g;
+    // 定义单位转换表（用于计算总克数）
+    const unitConversion = {
+        '杯': 240,
+        '根': 50,
+        '片': 5,
+        '顆': 5,
+        'g': 1,
+        '克': 1
+    };
+
+    // 使用正则表达式提取食材、数量和单位
+    const regex = /([\u4e00-\u9fa5a-zA-Z]+)\s*(?:\([^)]*\))?\s*([\d./-]+)\s*([\u4e00-\u9fa5a-zA-Z]*)/g;
     let match;
     const ingredientList = [];
     let totalOriginalGrams = 0;
 
     while ((match = regex.exec(ingredientsText)) !== null) {
-        console.log('匹配到:', match[1], match[2]); // 打印食材名称和克数
         const name = match[1].trim();
-        let grams = match[2];
+        let quantity = match[2];
+        const unit = match[3] || '克'; // 默认单位为克
 
-        // 处理范围值
-        if (grams.includes('-')) {
-            const [min, max] = grams.split('-').map(parseFloat);
-            grams = (min + max) / 2; // 取中间值
+        // 处理分数（如1/3）
+        if (quantity.includes('/')) {
+            const [numerator, denominator] = quantity.split('/').map(parseFloat);
+            quantity = numerator / denominator;
         } else {
-            grams = parseFloat(grams);
+            quantity = parseFloat(quantity);
         }
 
+        // 处理范围值（如1-30）
+        if (typeof quantity === 'string' && quantity.includes('-')) {
+            const [min, max] = quantity.split('-').map(parseFloat);
+            quantity = (min + max) / 2; // 取中间值
+        }
+
+        // 转换单位并计算总克数
+        const grams = quantity * (unitConversion[unit] || 1);
         totalOriginalGrams += grams;
-        ingredientList.push({ name, grams });
+        ingredientList.push({ name, quantity, unit }); // 保留原始单位和数量
     }
 
     if (totalOriginalGrams === 0) {
@@ -34,7 +52,8 @@ function calculateRecipe() {
     const ratio = totalGrams / totalOriginalGrams;
     const adjustedRecipe = ingredientList.map(ingredient => ({
         name: ingredient.name,
-        grams: ingredient.grams * ratio
+        quantity: ingredient.quantity * ratio, // 调整数量
+        unit: ingredient.unit // 保持单位不变
     }));
 
     // 显示结果
@@ -42,7 +61,7 @@ function calculateRecipe() {
     resultList.innerHTML = '';
     adjustedRecipe.forEach(ingredient => {
         const li = document.createElement('li');
-        li.textContent = `${ingredient.name}: ${ingredient.grams.toFixed(2)}克`;
+        li.textContent = `${ingredient.name}: ${ingredient.quantity.toFixed(2)}${ingredient.unit}`;
         resultList.appendChild(li);
     });
 
